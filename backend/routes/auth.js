@@ -2,7 +2,7 @@ const express = require("express");
 const db = require("../db");
 const jwt = require("jsonwebtoken");
 const configClass = require("../classes/config");
-const packageJson = require("../../package.json");
+const packageJson = require("../package.json");
 const API = require("../classes/api-loader");
 const { axios } = require("../classes/axios");
 

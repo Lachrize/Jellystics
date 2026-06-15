@@ -7,9 +7,9 @@ tasks:
       - task --list
 
   install:
-    desc: Install all dependencies (root npm + frontend pnpm)
+    desc: Install all dependencies (backend npm + frontend pnpm)
     cmds:
-      - npm install
+      - npm install --prefix backend
       - pnpm install --dir frontend
 
   setup:
@@ -52,7 +52,7 @@ tasks:
   backend:
     desc: Start backend in dev mode (nodemon)
     cmds:
-      - cd backend && npx nodemon --inspect server.js
+      - npm --prefix backend run dev:server
 
   frontend:
     desc: Start frontend dev server on port 3001
@@ -64,11 +64,7 @@ tasks:
     desc: Start DB + backend + frontend dev server concurrently
     cmds:
       - task: db
-      - npx concurrently
-          --names "backend,frontend"
-          --prefix-colors "cyan,magenta"
-          "cd backend && npx nodemon --inspect server.js"
-          "cd frontend && pnpm dev"
+      - npm --prefix backend run dev
 
   clean:
     desc: Stop and remove DB container and volumes
@@ -97,4 +93,4 @@ tasks:
     desc: Build frontend then run backend in production mode
     cmds:
       - task: build
-      - npm run start-app
+      - npm --prefix backend run start-app

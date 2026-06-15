@@ -31,4 +31,4 @@ load_secrets() {
 # Load secrets
 load_secrets
 # Launch jellystics
-npm run start
+cd /app/backend && npm run start
