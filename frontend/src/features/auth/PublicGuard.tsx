@@ -29,8 +29,8 @@ export default function PublicGuard() {
   const token = localStorage.getItem('jellystics-token')
   if (state === 1 && token) return <Navigate to="/" replace />
 
-  // Not configured but trying to access /login → redirect to setup
-  if (state === 0 && location.pathname === '/login') return <Navigate to="/setup" replace />
+  // Not configured but trying to access /setup → redirect to login (login handles setup now)
+  if (state === 0 && location.pathname === '/setup') return <Navigate to="/login" replace />
 
   return <Outlet context={{ configState: state }} />
 }

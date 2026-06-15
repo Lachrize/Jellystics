@@ -33,11 +33,11 @@ export default function AuthGuard() {
     )
   }
 
-  // Jellyfin not configured yet → setup
-  if (state === 0) return <Navigate to="/setup" replace />
+  // Jellyfin not configured yet → login (login handles setup wizard)
+  if (state === 0) return <Navigate to="/login" replace />
 
   // Configured but not logged in → login
-  const token = localStorage.getItem('jellystat-token')
+  const token = localStorage.getItem('jellystics-token')
   if (!token) return <Navigate to="/login" replace />
 
   return <Outlet />
