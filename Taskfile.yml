@@ -1,0 +1,83 @@
+version: '3'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  install:
+    desc: Install all dependencies (root npm + frontend pnpm)
+    cmds:
+      - npm install
+      - pnpm install --dir frontend
+
+  setup:
+    desc: Create backend/.env with default values if it does not exist
+    cmds:
+      - |
+        if [ ! -f backend/.env ]; then
+          echo "Creating backend/.env with default values..."
+          cat > backend/.env << 'EOF'
+        JWT_SECRET=change-me-in-production
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=mypassword
+        POSTGRES_IP=localhost
+        POSTGRES_PORT=5432
+        TZ=Europe/Paris
+        EOF
+          echo "backend/.env created — edit it before running"
+        else
+          echo "backend/.env already exists"
+        fi
+
+  db:
+    desc: Start PostgreSQL container (jellystics-db service only)
+    cmds:
+      - docker compose up -d jellystics-db
+      - echo "Waiting for PostgreSQL to be ready..."
+      - docker compose exec jellystics-db sh -c 'until pg_isready -U postgres; do sleep 1; done'
+      - echo "PostgreSQL is ready"
+
+  db:stop:
+    desc: Stop the PostgreSQL container
+    cmds:
+      - docker compose stop jellystics-db
+
+  db:logs:
+    desc: Tail PostgreSQL container logs
+    cmds:
+      - docker compose logs -f jellystics-db
+
+  backend:
+    desc: Start backend in dev mode (nodemon)
+    cmds:
+      - cd backend && npx nodemon --inspect server.js
+
+  frontend:
+    desc: Start frontend dev server on port 3001
+    dir: frontend
+    cmds:
+      - pnpm dev
+
+  dev:
+    desc: Start DB + backend + frontend dev server concurrently
+    cmds:
+      - task: db
+      - npx concurrently
+          --names "backend,frontend"
+          --prefix-colors "cyan,magenta"
+          "cd backend && npx nodemon --inspect server.js"
+          "cd frontend && pnpm dev"
+
+  build:
+    desc: Build the frontend (outputs to dist/ for the backend to serve)
+    dir: frontend
+    cmds:
+      - pnpm build
+
+  start:
+    desc: Build frontend then run backend in production mode
+    cmds:
+      - task: build
+      - npm run start-app

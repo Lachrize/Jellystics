@@ -1,0 +1,60 @@
+services:
+  jellystics-db:
+    image: postgres:18.1
+    shm_size: '1gb'
+    container_name: jellystics-db
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready --dbname=postgres --username=postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  jellystics:
+    image: Jellystics/jellystics:latest
+    container_name: jellystics
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_IP: jellystics-db
+      POSTGRES_PORT: 5432
+      JWT_SECRET: "my-secret-jwt-key"
+      TZ: mytimezone # timezone (ex: Europe/Paris)
+    volumes:
+      - jellystics-backup-data:/app/backend/backup-data
+    ports:
+      - "3000:3000"
+    depends_on:
+      jellystics-db:
+        condition: service_healthy
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000/auth/isConfigured || exit 1
+      interval: 60s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+networks:
+  default:
+
+volumes:
+  postgres-data:
+  jellystics-backup-data:
