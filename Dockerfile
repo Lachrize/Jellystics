@@ -3,15 +3,20 @@ FROM node:22.21.1-bookworm-slim AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+RUN npm install -g pnpm
+
+COPY backend/package*.json ./backend/
 RUN npm cache clean --force
-RUN npm install
+RUN npm install --prefix backend
+
+COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml frontend/.npmrc ./frontend/
+RUN pnpm install --dir frontend --frozen-lockfile
 
 COPY ./ ./
 COPY entry.sh ./
 
 # Build the application
-RUN npm run build
+RUN pnpm --dir frontend build
 
 # Stage 2: Create the production image
 FROM node:22.21.1-bookworm-slim
