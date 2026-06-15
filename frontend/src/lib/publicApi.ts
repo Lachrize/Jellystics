@@ -1,0 +1,24 @@
+import axios from 'axios'
+
+// Axios instance for routes that are NOT under /api (auth, sync, utils, etc.)
+const publicApi = axios.create()
+
+publicApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('jellystics-token')
+  if (token) config.headers['Authorization'] = `Bearer ${token}`
+  return config
+})
+
+publicApi.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401 && window.location.pathname !== '/login') {
+      localStorage.removeItem('jellystics-token')
+      localStorage.removeItem('jellystics-username')
+      window.location.href = '/login'
+    }
+    return Promise.reject(err)
+  }
+)
+
+export default publicApi
